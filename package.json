@@ -1,0 +1,7 @@
+{
+  "name": "cue-mvp",
+  "version": "1.0.0",
+  "description": "Cue MVP - Natural Language to Serverless Functions",
+  "type": "module"
+}
+

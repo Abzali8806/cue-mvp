@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cue - Workflow Automation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            color: #1a202c;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 2rem;
+            height: 2rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.125rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #1a202c 0%, #4a5568 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .theme-toggle {
+            padding: 0.5rem;
+            border: none;
+            background: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 0;
+            min-height: calc(100vh - 4rem);
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero-title {
+            font-size: clamp(2rem, 5vw, 3.75rem);
+            font-weight: bold;
+            color: #1a202c;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: #4a5568;
+            max-width: 4xl;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        .cue-brand {
+            font-weight: 800;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+        }
+
+        .feature-dot.green { background-color: #10b981; }
+        .feature-dot.blue { background-color: #3b82f6; }
+        .feature-dot.purple { background-color: #8b5cf6; }
+
+        /* Workflow Generator */
+        .workflow-generator {
+            max-width: 4xl;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .step {
+            display: none;
+            padding: 2rem;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .step-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .step-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: #4a5568;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .button {
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-secondary {
+            background: #f8fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+
+        .button-secondary:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e0;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+            transition: width 0.3s ease;
+        }
+
+        .api-key-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .api-key-title {
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+
+        .api-key-description {
+            color: #4a5568;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .api-key-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .api-key-link:hover {
+            text-decoration: underline;
+        }
+
+        .code-preview {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        .validation-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .validation-status.success {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+
+        .validation-status.error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+        }
+
+        .loading {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .step-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            border-top: 1px solid #e2e8f0;
+            padding: 1rem 0;
+            text-align: center;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .features {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .step {
+                padding: 1.5rem;
+            }
+
+            .step-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Dark mode styles */
+        .dark {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            color: #e2e8f0;
+        }
+
+        .dark .header {
+            background: rgba(26, 32, 44, 0.95);
+            border-bottom-color: #4a5568;
+        }
+
+        .dark .workflow-generator {
+            background: #2d3748;
+        }
+
+        .dark .textarea,
+        .dark .input {
+            background: #4a5568;
+            border-color: #6b7280;
+            color: #e2e8f0;
+        }
+
+        .dark .api-key-item {
+            background: #374151;
+            border-color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">C</div>
+                    <div class="logo-text">Cue</div>
+                </div>
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"/>
+                        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Hero Section -->
+            <div class="hero">
+                <h1 class="hero-title">Speak It. Build It. Deploy It.</h1>
+                <p class="hero-subtitle">
+                    Effortless workflow automation from prompt to deployment with <span class="cue-brand">Cue</span>
+                </p>
+                
+                <!-- Feature highlights -->
+                <div class="features">
+                    <span class="feature">
+                        <span class="feature-dot green"></span>
+                        <span>Natural language input</span>
+                    </span>
+                    <span class="feature">
+                        <span class="feature-dot blue"></span>
+                        <span>Visual workflow generator</span>
+                    </span>
+                    <span class="feature">
+                        <span class="feature-dot purple"></span>
+                        <span>Ready-to-deploy code</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Workflow Generator -->
+            <div class="workflow-generator">
+                <!-- Progress Bar -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 25%"></div>
+                </div>
+
+                <!-- Step 1: Describe Workflow -->
+                <div class="step active" id="step1">
+                    <div class="step-header">
+                        <h2 class="step-title">Describe Your Workflow</h2>
+                        <p class="step-description">Tell us what you want to automate in plain English</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="label" for="workflowDescription">What would you like to automate?</label>
+                        <textarea 
+                            id="workflowDescription" 
+                            class="textarea" 
+                            placeholder="Example: When someone submits a contact form, send me an email notification and create a Slack message to the team..."
+                            rows="6"
+                        ></textarea>
+                    </div>
+
+                    <div class="step-navigation">
+                        <div></div>
+                        <button class="button" onclick="generateCode()">
+                            <span class="loading" id="generateLoading" style="display: none;">
+                                <span class="spinner"></span>
+                                Generating...
+                            </span>
+                            <span id="generateText">Generate Code</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Setup API Keys -->
+                <div class="step" id="step2">
+                    <div class="step-header">
+                        <h2 class="step-title">Setup API Keys</h2>
+                        <p class="step-description">Configure the services your workflow needs</p>
+                    </div>
+                    
+                    <div id="apiKeysContainer">
+                        <!-- API keys will be populated here -->
+                    </div>
+
+                    <div class="step-navigation">
+                        <button class="button-secondary" onclick="goToStep(1)">Back</button>
+                        <button class="button" onclick="populateCode()">
+                            <span class="loading" id="populateLoading" style="display: none;">
+                                <span class="spinner"></span>
+                                Processing...
+                            </span>
+                            <span id="populateText">Continue</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Step 3: Validate & Download -->
+                <div class="step" id="step3">
+                    <div class="step-header">
+                        <h2 class="step-title">Your Code is Ready!</h2>
+                        <p class="step-description">Validated and ready for deployment</p>
+                    </div>
+                    
+                    <div id="validationStatus"></div>
+                    
+                    <div class="code-preview" id="finalCode">
+                        <!-- Final code will be displayed here -->
+                    </div>
+
+                    <div class="step-navigation">
+                        <button class="button-secondary" onclick="goToStep(2)">Back</button>
+                        <button class="button" onclick="downloadCode()">Download Code</button>
+                    </div>
+                </div>
+
+                <!-- Step 4: Deployment Guide -->
+                <div class="step" id="step4">
+                    <div class="step-header">
+                        <h2 class="step-title">Deployment Instructions</h2>
+                        <p class="step-description">Follow these steps to deploy your workflow</p>
+                    </div>
+                    
+                    <div id="deploymentInstructions">
+                        <!-- Deployment instructions will be populated here -->
+                    </div>
+
+                    <div class="step-navigation">
+                        <button class="button-secondary" onclick="goToStep(3)">Back</button>
+                        <button class="button" onclick="startOver()">Create Another Workflow</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Cue. Effortless workflow automation.</p>
+        </div>
+    </footer>
+
+    <script>
+        let currentStep = 1;
+        let generatedCode = '';
+        let workflowType = '';
+        let requiredApiKeys = [];
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark');
+        }
+
+        function goToStep(step) {
+            // Hide current step
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            
+            // Show new step
+            currentStep = step;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            // Update progress bar
+            const progress = (step / 4) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        async function generateCode() {
+            const description = document.getElementById('workflowDescription').value.trim();
+            
+            if (!description) {
+                alert('Please describe your workflow first.');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('generateLoading').style.display = 'flex';
+            document.getElementById('generateText').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ description })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    generatedCode = result.code;
+                    workflowType = result.workflowType;
+                    requiredApiKeys = result.requiredApiKeys;
+                    
+                    // Populate API keys section
+                    populateApiKeysSection();
+                    
+                    // Move to next step
+                    goToStep(2);
+                } else {
+                    alert('Failed to generate code: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error generating code: ' + error.message);
+            } finally {
+                // Hide loading state
+                document.getElementById('generateLoading').style.display = 'none';
+                document.getElementById('generateText').style.display = 'inline';
+            }
+        }
+
+        function populateApiKeysSection() {
+            const container = document.getElementById('apiKeysContainer');
+            container.innerHTML = '';
+
+            if (requiredApiKeys.length === 0) {
+                container.innerHTML = '<p>No API keys required for this workflow.</p>';
+                return;
+            }
+
+            requiredApiKeys.forEach(apiKey => {
+                const keyItem = document.createElement('div');
+                keyItem.className = 'api-key-item';
+                keyItem.innerHTML = `
+                    <div class="api-key-title">${apiKey.name}</div>
+                    <div class="api-key-description">${apiKey.description}</div>
+                    <div style="margin-bottom: 1rem;">
+                        <a href="${apiKey.setupUrl}" target="_blank" class="api-key-link">
+                            Get ${apiKey.name} →
+                        </a>
+                    </div>
+                    <input 
+                        type="password" 
+                        class="input" 
+                        placeholder="Enter your ${apiKey.name}"
+                        data-key="${apiKey.key}"
+                    />
+                `;
+                container.appendChild(keyItem);
+            });
+        }
+
+        async function populateCode() {
+            // Show loading state
+            document.getElementById('populateLoading').style.display = 'flex';
+            document.getElementById('populateText').style.display = 'none';
+
+            try {
+                // Collect API keys
+                const apiKeys = {};
+                const inputs = document.querySelectorAll('#apiKeysContainer input[data-key]');
+                inputs.forEach(input => {
+                    const key = input.getAttribute('data-key');
+                    const value = input.value.trim();
+                    if (value) {
+                        apiKeys[key] = value;
+                    }
+                });
+
+                const response = await fetch('/api/populate-and-validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        code: generatedCode,
+                        apiKeys: apiKeys,
+                        workflowType: workflowType
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.validation.isValid) {
+                    // Show success validation
+                    document.getElementById('validationStatus').innerHTML = `
+                        <div class="validation-status success">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 12l2 2 4-4"/>
+                                <circle cx="12" cy="12" r="10"/>
+                            </svg>
+                            Code validated successfully! Ready for deployment.
+                        </div>
+                    `;
+                    
+                    // Display final code
+                    document.getElementById('finalCode').textContent = result.finalCode;
+                    generatedCode = result.finalCode;
+                    
+                    // Move to next step
+                    goToStep(3);
+                } else {
+                    // Show validation errors
+                    const issues = result.validation.issues.join(', ');
+                    document.getElementById('validationStatus').innerHTML = `
+                        <div class="validation-status error">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                            Validation issues: ${issues}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                alert('Error processing code: ' + error.message);
+            } finally {
+                // Hide loading state
+                document.getElementById('populateLoading').style.display = 'none';
+                document.getElementById('populateText').style.display = 'inline';
+            }
+        }
+
+        function downloadCode() {
+            const blob = new Blob([generatedCode], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'workflow_function.py';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Show deployment instructions
+            showDeploymentInstructions();
+            goToStep(4);
+        }
+
+        function showDeploymentInstructions() {
+            const instructions = `
+                <div style="text-align: left;">
+                    <h3 style="margin-bottom: 1rem; color: #1a202c;">Deployment Steps:</h3>
+                    <ol style="padding-left: 1.5rem; line-height: 1.8; color: #4a5568;">
+                        <li><strong>Prepare the Code:</strong> Save the downloaded file as <code>workflow_function.py</code></li>
+                        <li><strong>Choose Platform:</strong> Select your preferred serverless platform (AWS Lambda, Google Cloud Functions, Azure Functions, etc.)</li>
+                        <li><strong>Create Function:</strong> Create a new serverless function in your chosen platform</li>
+                        <li><strong>Upload Code:</strong> Copy/paste or upload the Python file</li>
+                        <li><strong>Configure Handler:</strong> Set the function handler to <code>workflow_function.handler</code></li>
+                        <li><strong>Environment Variables:</strong> Add your API keys as environment variables</li>
+                        <li><strong>Test Function:</strong> Create test events and verify functionality</li>
+                        <li><strong>Set Up Triggers:</strong> Configure triggers based on your workflow type (HTTP, scheduled, etc.)</li>
+                    </ol>
+                    
+                    <div style="margin-top: 2rem; padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+                        <h4 style="margin-bottom: 0.5rem; color: #1a202c;">Platform-Specific Guides:</h4>
+                        <ul style="color: #4a5568; margin: 0; padding-left: 1.5rem;">
+                            <li><strong>AWS Lambda:</strong> <a href="https://docs.aws.amazon.com/lambda/" target="_blank" style="color: #3b82f6;">AWS Lambda Documentation</a></li>
+                            <li><strong>Google Cloud:</strong> <a href="https://cloud.google.com/functions/docs" target="_blank" style="color: #3b82f6;">Cloud Functions Documentation</a></li>
+                            <li><strong>Azure:</strong> <a href="https://docs.microsoft.com/en-us/azure/azure-functions/" target="_blank" style="color: #3b82f6;">Azure Functions Documentation</a></li>
+                            <li><strong>Vercel:</strong> <a href="https://vercel.com/docs/functions" target="_blank" style="color: #3b82f6;">Vercel Functions Documentation</a></li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            document.getElementById('deploymentInstructions').innerHTML = instructions;
+        }
+
+        function startOver() {
+            // Reset form
+            document.getElementById('workflowDescription').value = '';
+            document.getElementById('apiKeysContainer').innerHTML = '';
+            document.getElementById('validationStatus').innerHTML = '';
+            document.getElementById('finalCode').textContent = '';
+            document.getElementById('deploymentInstructions').innerHTML = '';
+            
+            // Reset variables
+            generatedCode = '';
+            workflowType = '';
+            requiredApiKeys = [];
+            
+            // Go back to step 1
+            goToStep(1);
+        }
+    </script>
+</body>
+</html>
+
