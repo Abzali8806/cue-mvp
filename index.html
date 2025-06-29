@@ -276,36 +276,7 @@
             transition: width 0.3s ease;
         }
 
-        .api-key-item {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .api-key-title {
-            font-weight: 600;
-            color: #1a202c;
-            margin-bottom: 0.5rem;
-        }
-
-        .api-key-description {
-            color: #4a5568;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-        }
-
-        .api-key-link {
-            color: #3b82f6;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .api-key-link:hover {
-            text-decoration: underline;
-        }
-
+        /* Code Display */
         .code-preview {
             background: #1a202c;
             color: #e2e8f0;
@@ -316,27 +287,109 @@
             line-height: 1.6;
             overflow-x: auto;
             margin: 1rem 0;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
-        .validation-status {
+        .code-actions {
             display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        /* Workflow Visualization */
+        .workflow-visual {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 0.5rem;
+            padding: 1.5rem;
             margin: 1rem 0;
         }
 
-        .validation-status.success {
-            background: #f0fdf4;
-            color: #166534;
-            border: 1px solid #bbf7d0;
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        .validation-status.error {
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
+        .step-number {
+            width: 2rem;
+            height: 2rem;
+            background: #3b82f6;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-service {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .step-action {
+            color: #4a5568;
+            font-size: 0.875rem;
+        }
+
+        /* Configuration Groups */
+        .config-group {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .config-group-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .config-group-title {
+            font-weight: 600;
+            color: #1a202c;
+            margin-left: 0.5rem;
+        }
+
+        .config-group-description {
+            color: #4a5568;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .config-field {
+            margin-bottom: 1rem;
+        }
+
+        .config-field-label {
+            display: block;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 0.25rem;
+        }
+
+        .config-field-help {
+            color: #6b7280;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        .required-indicator {
+            color: #ef4444;
+            margin-left: 0.25rem;
         }
 
         .loading {
@@ -392,33 +445,10 @@
                 flex-direction: column;
                 gap: 1rem;
             }
-        }
 
-        /* Dark mode styles */
-        .dark {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
-            color: #e2e8f0;
-        }
-
-        .dark .header {
-            background: rgba(26, 32, 44, 0.95);
-            border-bottom-color: #4a5568;
-        }
-
-        .dark .workflow-generator {
-            background: #2d3748;
-        }
-
-        .dark .textarea,
-        .dark .input {
-            background: #4a5568;
-            border-color: #6b7280;
-            color: #e2e8f0;
-        }
-
-        .dark .api-key-item {
-            background: #374151;
-            border-color: #4a5568;
+            .code-actions {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
@@ -472,7 +502,7 @@
             <div class="workflow-generator">
                 <!-- Progress Bar -->
                 <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill" style="width: 25%"></div>
+                    <div class="progress-fill" id="progressFill" style="width: 20%"></div>
                 </div>
 
                 <!-- Step 1: Describe Workflow -->
@@ -487,7 +517,7 @@
                         <textarea 
                             id="workflowDescription" 
                             class="textarea" 
-                            placeholder="Example: When someone submits a contact form, send me an email notification and create a Slack message to the team..."
+                            placeholder="Example: When I receive an email with an attachment, automatically save the attachment to Google Drive and send me a Slack notification."
                             rows="6"
                         ></textarea>
                     </div>
@@ -504,57 +534,85 @@
                     </div>
                 </div>
 
-                <!-- Step 2: Setup API Keys -->
+                <!-- Step 2: Review Workflow -->
                 <div class="step" id="step2">
                     <div class="step-header">
-                        <h2 class="step-title">Setup API Keys</h2>
-                        <p class="step-description">Configure the services your workflow needs</p>
+                        <h2 class="step-title">Review Your Workflow</h2>
+                        <p class="step-description">Generated code and workflow visualization</p>
                     </div>
                     
-                    <div id="apiKeysContainer">
-                        <!-- API keys will be populated here -->
+                    <!-- Workflow Visualization -->
+                    <div class="workflow-visual" id="workflowVisualization">
+                        <!-- Workflow steps will be populated here -->
+                    </div>
+
+                    <!-- Generated Code Display -->
+                    <div class="form-group">
+                        <label class="label">Generated Code</label>
+                        <div class="code-preview" id="generatedCodeDisplay">
+                            <!-- Generated code will be displayed here -->
+                        </div>
+                        <div class="code-actions">
+                            <button class="button-secondary" onclick="copyCode()">Copy Code</button>
+                            <button class="button-secondary" onclick="editCode()">Edit Code</button>
+                        </div>
                     </div>
 
                     <div class="step-navigation">
                         <button class="button-secondary" onclick="goToStep(1)">Back</button>
-                        <button class="button" onclick="populateCode()">
-                            <span class="loading" id="populateLoading" style="display: none;">
-                                <span class="spinner"></span>
-                                Processing...
-                            </span>
-                            <span id="populateText">Continue</span>
-                        </button>
+                        <button class="button" onclick="goToStep(3)">Configure Services</button>
                     </div>
                 </div>
 
-                <!-- Step 3: Validate & Download -->
+                <!-- Step 3: Configure Services -->
                 <div class="step" id="step3">
                     <div class="step-header">
-                        <h2 class="step-title">Your Code is Ready!</h2>
-                        <p class="step-description">Validated and ready for deployment</p>
+                        <h2 class="step-title">Configure Services</h2>
+                        <p class="step-description">Set up the services your workflow needs</p>
                     </div>
                     
-                    <div id="validationStatus"></div>
-                    
-                    <div class="code-preview" id="finalCode">
-                        <!-- Final code will be displayed here -->
+                    <div id="configurationContainer">
+                        <!-- Configuration groups will be populated here -->
                     </div>
 
                     <div class="step-navigation">
                         <button class="button-secondary" onclick="goToStep(2)">Back</button>
-                        <button class="button" onclick="downloadCode()">
-                            Download Code
+                        <button class="button" onclick="finalizeCode()">
+                            <span class="loading" id="finalizeLoading" style="display: none;">
+                                <span class="spinner"></span>
+                                Processing...
+                            </span>
+                            <span id="finalizeText">Finalize Code</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Step 4: Deployment Instructions -->
+                <!-- Step 4: Download & Deploy -->
                 <div class="step" id="step4">
                     <div class="step-header">
-                        <h2 class="step-title">Deployment Instructions</h2>
-                        <p class="step-description">Follow these steps to deploy your workflow</p>
+                        <h2 class="step-title">Download & Deploy</h2>
+                        <p class="step-description">Your workflow is ready for deployment</p>
                     </div>
                     
+                    <!-- Final Code Display -->
+                    <div class="form-group">
+                        <label class="label">Final Code</label>
+                        <div class="code-preview" id="finalCodeDisplay">
+                            <!-- Final code will be displayed here -->
+                        </div>
+                    </div>
+
+                    <!-- Download Options -->
+                    <div class="form-group">
+                        <label class="label">Download Options</label>
+                        <div class="code-actions">
+                            <button class="button" onclick="downloadCode('python')">Download Python</button>
+                            <button class="button-secondary" onclick="downloadCode('requirements')">Download Requirements.txt</button>
+                            <button class="button-secondary" onclick="downloadCode('readme')">Download README</button>
+                        </div>
+                    </div>
+
+                    <!-- Deployment Instructions -->
                     <div id="deploymentInstructions">
                         <!-- Deployment instructions will be populated here -->
                     </div>
@@ -579,7 +637,9 @@
         let currentStep = 1;
         let generatedCode = '';
         let workflowType = '';
-        let requiredApiKeys = [];
+        let workflowSteps = [];
+        let configurationRequirements = [];
+        let finalCode = '';
 
         function toggleTheme() {
             document.body.classList.toggle('dark');
@@ -624,12 +684,14 @@
                 if (result.success) {
                     generatedCode = result.code;
                     workflowType = result.workflowType;
-                    requiredApiKeys = result.placeholders || [];  // ← FIX 1: Use placeholders instead of requiredApiKeys
+                    workflowSteps = result.workflowSteps || [];
+                    configurationRequirements = result.configurationRequirements || [];
                     
-                    // Populate API keys section
-                    populateApiKeysSection();
+                    // Display workflow visualization and code
+                    displayWorkflowVisualization();
+                    displayGeneratedCode();
                     
-                    // Move to next step
+                    // Move to review step
                     goToStep(2);
                 } else {
                     alert('Failed to generate code: ' + result.error);
@@ -643,165 +705,276 @@
             }
         }
 
-        function populateApiKeysSection() {  // ← FIX 2: Updated function to handle placeholders as strings
-            const container = document.getElementById('apiKeysContainer');
+        function displayWorkflowVisualization() {
+            const container = document.getElementById('workflowVisualization');
             container.innerHTML = '';
 
-            if (!requiredApiKeys || requiredApiKeys.length === 0) {
-                container.innerHTML = '<p>No API keys required for this workflow.</p>';
+            if (workflowSteps.length === 0) {
+                container.innerHTML = '<p>No workflow steps available.</p>';
                 return;
             }
 
-            requiredApiKeys.forEach(placeholder => {
-                const keyItem = document.createElement('div');
-                keyItem.className = 'api-key-item';
-                keyItem.innerHTML = `
-                    <div class="api-key-title">${placeholder}</div>
-                    <div class="api-key-description">Enter your ${placeholder} value</div>
-                    <input 
-                        type="password" 
-                        class="input" 
-                        placeholder="Enter your ${placeholder}"
-                        data-key="${placeholder}"
-                    />
+            workflowSteps.forEach((step, index) => {
+                const stepElement = document.createElement('div');
+                stepElement.className = 'workflow-step';
+                stepElement.innerHTML = `
+                    <div class="step-number">${step.step || index + 1}</div>
+                    <div class="step-content">
+                        <div class="step-service">${step.service}</div>
+                        <div class="step-action">${step.action}</div>
+                        ${step.description ? `<div class="step-action" style="margin-top: 0.25rem; font-style: italic;">${step.description}</div>` : ''}
+                    </div>
                 `;
-                container.appendChild(keyItem);
+                container.appendChild(stepElement);
             });
         }
 
-        async function populateCode() {
-            // Show loading state
-            document.getElementById('populateLoading').style.display = 'flex';
-            document.getElementById('populateText').style.display = 'none';
+        function displayGeneratedCode() {
+            const codeDisplay = document.getElementById('generatedCodeDisplay');
+            codeDisplay.textContent = generatedCode;
+        }
 
-            try {
-                // Collect API keys
-                const apiKeys = {};
-                const inputs = document.querySelectorAll('#apiKeysContainer input[data-key]');
-                inputs.forEach(input => {
-                    const key = input.getAttribute('data-key');
-                    const value = input.value.trim();
-                    if (value) {
-                        apiKeys[key] = value;
-                    }
-                });
+        function copyCode() {
+            navigator.clipboard.writeText(generatedCode).then(() => {
+                alert('Code copied to clipboard!');
+            });
+        }
 
-                const response = await fetch('/api/populate-and-validate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        code: generatedCode,
-                        apiKeys: apiKeys,
-                        workflowType: workflowType
-                    })
-                });
-
-                const result = await response.json();
-                
-                if (result.validation.isValid) {
-                    // Show success validation
-                    document.getElementById('validationStatus').innerHTML = `
-                        <div class="validation-status success">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9 12l2 2 4-4"/>
-                                <circle cx="12" cy="12" r="10"/>
-                            </svg>
-                            Code validated successfully! Ready for deployment.
-                        </div>
-                    `;
-                    
-                    // Display final code
-                    document.getElementById('finalCode').textContent = result.finalCode;
-                    generatedCode = result.finalCode;
-                    
-                    // Move to next step
-                    goToStep(3);
-                } else {
-                    // Show validation errors
-                    const issues = result.validation.issues.join(', ');
-                    document.getElementById('validationStatus').innerHTML = `
-                        <div class="validation-status error">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="15" y1="9" x2="9" y2="15"/>
-                                <line x1="9" y1="9" x2="15" y2="15"/>
-                            </svg>
-                            Validation issues: ${issues}
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                alert('Error processing code: ' + error.message);
-            } finally {
-                // Hide loading state
-                document.getElementById('populateLoading').style.display = 'none';
-                document.getElementById('populateText').style.display = 'inline';
+        function editCode() {
+            const newCode = prompt('Edit your code:', generatedCode);
+            if (newCode !== null) {
+                generatedCode = newCode;
+                displayGeneratedCode();
             }
         }
 
-        function downloadCode() {
-            const blob = new Blob([generatedCode], { type: 'text/plain' });
+        function populateConfigurationForm() {
+            const container = document.getElementById('configurationContainer');
+            container.innerHTML = '';
+
+            if (!configurationRequirements || configurationRequirements.length === 0) {
+                container.innerHTML = '<p>No configuration required for this workflow.</p>';
+                return;
+            }
+
+            configurationRequirements.forEach(config => {
+                const configGroup = document.createElement('div');
+                configGroup.className = 'config-group';
+                
+                let fieldsHtml = '';
+                config.fields.forEach(field => {
+                    fieldsHtml += `
+                        <div class="config-field">
+                            <label class="config-field-label" for="${field.name}">
+                                ${field.label}
+                                ${field.required ? '<span class="required-indicator">*</span>' : ''}
+                            </label>
+                            <input 
+                                type="${field.type}" 
+                                id="${field.name}"
+                                class="input" 
+                                placeholder="${field.help || ''}"
+                                data-field="${field.name}"
+                                ${field.required ? 'required' : ''}
+                            />
+                            ${field.help ? `<div class="config-field-help">${field.help}</div>` : ''}
+                        </div>
+                    `;
+                });
+
+                configGroup.innerHTML = `
+                    <div class="config-group-header">
+                        <div class="config-group-title">${config.service}</div>
+                    </div>
+                    <div class="config-group-description">${config.description}</div>
+                    ${fieldsHtml}
+                `;
+                
+                container.appendChild(configGroup);
+            });
+        }
+
+        async function finalizeCode() {
+            // Show loading state
+            document.getElementById('finalizeLoading').style.display = 'flex';
+            document.getElementById('finalizeText').style.display = 'none';
+
+            try {
+                // Collect configuration values
+                const configValues = {};
+                const inputs = document.querySelectorAll('#configurationContainer input[data-field]');
+                inputs.forEach(input => {
+                    const fieldName = input.getAttribute('data-field');
+                    const value = input.value.trim();
+                    if (value) {
+                        configValues[fieldName] = value;
+                    }
+                });
+
+                // Replace placeholders in code
+                finalCode = generatedCode;
+                Object.entries(configValues).forEach(([key, value]) => {
+                    const placeholder = `{{${key}}}`;
+                    finalCode = finalCode.replace(new RegExp(placeholder, 'g'), value);
+                });
+
+                // Display final code
+                document.getElementById('finalCodeDisplay').textContent = finalCode;
+                
+                // Generate deployment instructions
+                generateDeploymentInstructions();
+                
+                // Move to download step
+                goToStep(4);
+            } catch (error) {
+                alert('Error finalizing code: ' + error.message);
+            } finally {
+                // Hide loading state
+                document.getElementById('finalizeLoading').style.display = 'none';
+                document.getElementById('finalizeText').style.display = 'inline';
+            }
+        }
+
+        function downloadCode(type) {
+            let content = '';
+            let filename = '';
+
+            switch (type) {
+                case 'python':
+                    content = finalCode;
+                    filename = 'workflow_function.py';
+                    break;
+                case 'requirements':
+                    content = generateRequirementsTxt();
+                    filename = 'requirements.txt';
+                    break;
+                case 'readme':
+                    content = generateReadme();
+                    filename = 'README.md';
+                    break;
+                default:
+                    return;
+            }
+
+            const blob = new Blob([content], { type: 'text/plain' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'workflow_function.py';
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            
-            // Show deployment instructions
-            showDeploymentInstructions();
-            goToStep(4);
         }
 
-        function showDeploymentInstructions() {
+        function generateRequirementsTxt() {
+            // Generate requirements based on the services used
+            const requirements = ['requests>=2.25.1'];
+            
+            workflowSteps.forEach(step => {
+                switch (step.service.toLowerCase()) {
+                    case 'gmail':
+                        requirements.push('google-auth>=2.0.0', 'google-auth-oauthlib>=0.5.0', 'google-auth-httplib2>=0.1.0', 'google-api-python-client>=2.0.0');
+                        break;
+                    case 'google drive':
+                        requirements.push('google-auth>=2.0.0', 'google-auth-oauthlib>=0.5.0', 'google-auth-httplib2>=0.1.0', 'google-api-python-client>=2.0.0');
+                        break;
+                    case 'slack':
+                        requirements.push('slack-sdk>=3.0.0');
+                        break;
+                }
+            });
+
+            return [...new Set(requirements)].join('\n');
+        }
+
+        function generateReadme() {
+            return `# ${workflowType} Workflow
+
+## Description
+This workflow automates: ${document.getElementById('workflowDescription').value}
+
+## Setup Instructions
+
+1. Install dependencies:
+   \`\`\`bash
+   pip install -r requirements.txt
+   \`\`\`
+
+2. Configure environment variables based on your deployment platform
+
+3. Deploy to your preferred serverless platform
+
+## Workflow Steps
+${workflowSteps.map((step, index) => `${index + 1}. **${step.service}**: ${step.action}`).join('\n')}
+
+## Configuration Required
+${configurationRequirements.map(config => `- **${config.service}**: ${config.description}`).join('\n')}
+
+## Deployment Options
+- AWS Lambda
+- Google Cloud Functions
+- Azure Functions
+- Vercel Functions
+
+Generated by Cue - Workflow Automation Platform
+`;
+        }
+
+        function generateDeploymentInstructions() {
             const instructions = `
                 <div style="text-align: left;">
-                    <h3 style="margin-bottom: 1rem; color: #1a202c;">Deployment Steps:</h3>
+                    <h3 style="margin-bottom: 1rem; color: #1a202c;">Deployment Instructions:</h3>
                     <ol style="padding-left: 1.5rem; line-height: 1.8; color: #4a5568;">
-                        <li><strong>Prepare the Code:</strong> Save the downloaded file as <code>workflow_function.py</code></li>
-                        <li><strong>Choose Platform:</strong> Select your preferred serverless platform (AWS Lambda, Google Cloud Functions, Azure Functions, etc.)</li>
-                        <li><strong>Create Function:</strong> Create a new serverless function in your chosen platform</li>
-                        <li><strong>Upload Code:</strong> Copy/paste or upload the Python file</li>
-                        <li><strong>Configure Handler:</strong> Set the function handler to <code>workflow_function.handler</code></li>
-                        <li><strong>Environment Variables:</strong> Add your API keys as environment variables</li>
-                        <li><strong>Test Function:</strong> Create test events and verify functionality</li>
-                        <li><strong>Set Up Triggers:</strong> Configure triggers based on your workflow type (HTTP, scheduled, etc.)</li>
+                        <li><strong>Download Files:</strong> Download the Python code, requirements.txt, and README files</li>
+                        <li><strong>Choose Platform:</strong> Select your preferred serverless platform</li>
+                        <li><strong>Set Environment Variables:</strong> Configure your API keys and settings as environment variables</li>
+                        <li><strong>Deploy Function:</strong> Upload your code and dependencies</li>
+                        <li><strong>Configure Triggers:</strong> Set up triggers based on your workflow type</li>
+                        <li><strong>Test:</strong> Verify your workflow works as expected</li>
                     </ol>
-                    
-                    <div style="margin-top: 2rem; padding: 1rem; background: #f8fafc; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
-                        <h4 style="margin-bottom: 0.5rem; color: #1a202c;">Platform-Specific Guides:</h4>
-                        <ul style="color: #4a5568; margin: 0; padding-left: 1.5rem;">
-                            <li><strong>AWS Lambda:</strong> <a href="https://docs.aws.amazon.com/lambda/" target="_blank" style="color: #3b82f6;">AWS Lambda Documentation</a></li>
-                            <li><strong>Google Cloud:</strong> <a href="https://cloud.google.com/functions/docs" target="_blank" style="color: #3b82f6;">Cloud Functions Documentation</a></li>
-                            <li><strong>Azure:</strong> <a href="https://docs.microsoft.com/en-us/azure/azure-functions/" target="_blank" style="color: #3b82f6;">Azure Functions Documentation</a></li>
-                            <li><strong>Vercel:</strong> <a href="https://vercel.com/docs/functions" target="_blank" style="color: #3b82f6;">Vercel Functions Documentation</a></li>
-                        </ul>
-                    </div>
                 </div>
             `;
-            document.getElementById('deploymentInstructions' ).innerHTML = instructions;
+            document.getElementById('deploymentInstructions').innerHTML = instructions;
         }
 
         function startOver() {
-            // Reset form
-            document.getElementById('workflowDescription').value = '';
-            document.getElementById('apiKeysContainer').innerHTML = '';
-            document.getElementById('validationStatus').innerHTML = '';
-            document.getElementById('finalCode').textContent = '';
-            document.getElementById('deploymentInstructions').innerHTML = '';
-            
-            // Reset variables
+            // Reset all variables and forms
             generatedCode = '';
             workflowType = '';
-            requiredApiKeys = [];
+            workflowSteps = [];
+            configurationRequirements = [];
+            finalCode = '';
             
-            // Go back to step 1
+            document.getElementById('workflowDescription').value = '';
+            document.getElementById('workflowVisualization').innerHTML = '';
+            document.getElementById('generatedCodeDisplay').textContent = '';
+            document.getElementById('configurationContainer').innerHTML = '';
+            document.getElementById('finalCodeDisplay').textContent = '';
+            document.getElementById('deploymentInstructions').innerHTML = '';
+            
             goToStep(1);
+        }
+
+        // Initialize configuration form when step 3 is reached
+        function goToStep(step) {
+            // Hide current step
+            document.getElementById(`step${currentStep}`).classList.remove('active');
+            
+            // Show new step
+            currentStep = step;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            
+            // Update progress bar
+            const progress = (step / 4) * 100;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+
+            // Populate configuration form when reaching step 3
+            if (step === 3) {
+                populateConfigurationForm();
+            }
         }
     </script>
 </body>
 </html>
+

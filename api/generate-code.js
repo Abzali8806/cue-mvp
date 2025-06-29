@@ -1,4 +1,4 @@
-// Vercel Serverless Function - No External Dependencies
+// Vercel Serverless Function - Enhanced Configuration Support
 import https from 'https';
 
 export default async function handler(req, res) {
@@ -50,20 +50,25 @@ export default async function handler(req, res) {
             parsedResponse = {
                 workflowType: "custom",
                 code: generatedContent,
-                placeholders: [],
+                workflowSteps: [],
+                configurationRequirements: [],
                 description: "Generated workflow function",
                 deploymentInstructions: "Deploy as a serverless function"
             };
         }
 
-        // Ensure all required fields exist
+        // Ensure all required fields exist with enhanced structure
         const response = {
             success: true,
             workflowType: parsedResponse.workflowType || "custom",
             code: parsedResponse.code || generatedContent,
-            placeholders: parsedResponse.placeholders || [],
+            workflowSteps: parsedResponse.workflowSteps || [],
+            configurationRequirements: parsedResponse.configurationRequirements || [],
+            // Keep backward compatibility
+            placeholders: extractPlaceholdersFromConfig(parsedResponse.configurationRequirements || []),
             description: parsedResponse.description || "Generated workflow function",
             deploymentInstructions: parsedResponse.deploymentInstructions || "Deploy as a serverless function",
+            deploymentOptions: parsedResponse.deploymentOptions || ["AWS Lambda", "Google Cloud Functions", "Azure Functions"],
             timestamp: new Date().toISOString()
         };
 
@@ -78,7 +83,18 @@ export default async function handler(req, res) {
     }
 }
 
-// OpenAI API call using built-in https module
+// Extract simple placeholders for backward compatibility
+function extractPlaceholdersFromConfig(configRequirements) {
+    const placeholders = [];
+    configRequirements.forEach(config => {
+        config.fields.forEach(field => {
+            placeholders.push(field.name);
+        });
+    });
+    return placeholders;
+}
+
+// Enhanced OpenAI API call with improved prompt
 function callOpenAI(description) {
     return new Promise((resolve, reject) => {
         const postData = JSON.stringify({
@@ -86,40 +102,134 @@ function callOpenAI(description) {
             messages: [
                 {
                     role: 'system',
-                    content: `You are an expert workflow automation engineer. Generate production-ready serverless function code based on user descriptions.
+                    content: `You are an expert workflow automation engineer. Generate production-ready serverless function code and detailed configuration requirements based on user descriptions.
 
 CRITICAL REQUIREMENTS:
 1. ALWAYS generate Python code suitable for serverless deployment
 2. Use proper function structure with handler(event, context)
 3. Include comprehensive error handling and logging
-4. Add placeholder values for API keys and secrets (use {{PLACEHOLDER_NAME}} format)
+4. Add placeholder values for configuration (use {{FIELD_NAME}} format)
 5. Include proper imports and dependencies
 6. Add detailed comments explaining the workflow
 7. Ensure code is secure and follows best practices
-8. Maximum 50 lines of core logic (excluding imports and comments)
+8. Maximum 100 lines of core logic (excluding imports and comments)
 
-WORKFLOW TYPES TO DETECT:
-- Webhook Handler: Responds to HTTP requests/form submissions
-- Scheduled Task: Runs on a schedule (cron-like)
-- Event Processor: Processes events from queues/streams
-- Notification System: Sends alerts via email/SMS/Slack
-- Data Integration: Connects different services/APIs
+WORKFLOW ANALYSIS:
+- Identify all services/tools involved (Gmail, Slack, Google Drive, etc.)
+- Determine configuration needs for each service
+- Create step-by-step workflow breakdown
+- Specify exact configuration fields needed
 
-RESPONSE FORMAT:
+CONFIGURATION TYPES:
+- credentials: API keys, passwords, tokens
+- settings: IDs, URLs, paths, names
+- preferences: options, filters, formats
+
+RESPONSE FORMAT (JSON):
 {
   "workflowType": "detected_type",
-  "code": "complete_python_code",
-  "placeholders": ["list", "of", "placeholder", "keys"],
+  "code": "complete_python_code_with_placeholders",
+  "workflowSteps": [
+    {
+      "step": 1,
+      "service": "Gmail",
+      "action": "Monitor inbox for new emails",
+      "trigger": true,
+      "description": "Connects to Gmail and monitors for new emails with attachments"
+    },
+    {
+      "step": 2,
+      "service": "Google Drive",
+      "action": "Save attachment to folder",
+      "condition": "email has attachment",
+      "description": "Uploads email attachments to specified Google Drive folder"
+    },
+    {
+      "step": 3,
+      "service": "Slack",
+      "action": "Send notification",
+      "final": true,
+      "description": "Sends notification to Slack channel about saved file"
+    }
+  ],
+  "configurationRequirements": [
+    {
+      "service": "Gmail",
+      "type": "credentials",
+      "description": "Gmail account access for monitoring emails",
+      "fields": [
+        {
+          "name": "gmail_email",
+          "label": "Gmail Address",
+          "type": "email",
+          "required": true,
+          "help": "Your Gmail email address"
+        },
+        {
+          "name": "gmail_app_password",
+          "label": "App Password",
+          "type": "password",
+          "required": true,
+          "help": "Generate an app password in Gmail settings → Security → 2-Step Verification → App passwords"
+        }
+      ]
+    },
+    {
+      "service": "Google Drive",
+      "type": "settings",
+      "description": "Google Drive folder configuration",
+      "fields": [
+        {
+          "name": "drive_folder_id",
+          "label": "Folder ID",
+          "type": "text",
+          "required": true,
+          "help": "Right-click folder in Google Drive → Share → Copy link → Extract the folder ID from the URL"
+        }
+      ]
+    },
+    {
+      "service": "Slack",
+      "type": "settings",
+      "description": "Slack notification configuration",
+      "fields": [
+        {
+          "name": "slack_webhook_url",
+          "label": "Webhook URL",
+          "type": "url",
+          "required": true,
+          "help": "Create a webhook in Slack: Apps → Incoming Webhooks → Add to Slack"
+        },
+        {
+          "name": "slack_channel",
+          "label": "Channel Name",
+          "type": "text",
+          "required": false,
+          "help": "Channel name (optional, defaults to webhook channel)"
+        }
+      ]
+    }
+  ],
   "description": "brief_explanation",
-  "deploymentInstructions": "platform_agnostic_instructions"
-}`
+  "deploymentInstructions": "platform_agnostic_instructions",
+  "deploymentOptions": ["AWS Lambda", "Google Cloud Functions", "Azure Functions", "Vercel Functions"]
+}
+
+WORKFLOW TYPES TO DETECT:
+- Email Processing: Handles email-based triggers and actions
+- File Management: Manages files across different storage services
+- Notification System: Sends alerts via email/SMS/Slack/Teams
+- Data Integration: Connects and syncs data between services
+- Scheduled Task: Runs on a schedule (cron-like)
+- Webhook Handler: Responds to HTTP requests/form submissions
+- Event Processor: Processes events from queues/streams`
                 },
                 {
                     role: 'user',
                     content: `Generate a serverless function for this workflow: "${description}"`
                 }
             ],
-            max_tokens: parseInt(process.env.OPENAI_MAX_TOKENS) || 2000,
+            max_tokens: parseInt(process.env.OPENAI_MAX_TOKENS) || 3000,
             temperature: parseFloat(process.env.OPENAI_TEMPERATURE) || 0.2,
         });
 
