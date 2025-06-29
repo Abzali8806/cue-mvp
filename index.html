@@ -542,11 +542,13 @@
 
                     <div class="step-navigation">
                         <button class="button-secondary" onclick="goToStep(2)">Back</button>
-                        <button class="button" onclick="downloadCode()">Download Code</button>
+                        <button class="button" onclick="downloadCode()">
+                            Download Code
+                        </button>
                     </div>
                 </div>
 
-                <!-- Step 4: Deployment Guide -->
+                <!-- Step 4: Deployment Instructions -->
                 <div class="step" id="step4">
                     <div class="step-header">
                         <h2 class="step-title">Deployment Instructions</h2>
@@ -558,8 +560,8 @@
                     </div>
 
                     <div class="step-navigation">
-                        <button class="button-secondary" onclick="goToStep(3)">Back</button>
-                        <button class="button" onclick="startOver()">Create Another Workflow</button>
+                        <button class="button-secondary" onclick="startOver()">Create Another Workflow</button>
+                        <div></div>
                     </div>
                 </div>
             </div>
@@ -622,7 +624,7 @@
                 if (result.success) {
                     generatedCode = result.code;
                     workflowType = result.workflowType;
-                    requiredApiKeys = result.requiredApiKeys;
+                    requiredApiKeys = result.placeholders || [];  // ← FIX 1: Use placeholders instead of requiredApiKeys
                     
                     // Populate API keys section
                     populateApiKeysSection();
@@ -641,31 +643,26 @@
             }
         }
 
-        function populateApiKeysSection() {
+        function populateApiKeysSection() {  // ← FIX 2: Updated function to handle placeholders as strings
             const container = document.getElementById('apiKeysContainer');
             container.innerHTML = '';
 
-            if (requiredApiKeys.length === 0) {
+            if (!requiredApiKeys || requiredApiKeys.length === 0) {
                 container.innerHTML = '<p>No API keys required for this workflow.</p>';
                 return;
             }
 
-            requiredApiKeys.forEach(apiKey => {
+            requiredApiKeys.forEach(placeholder => {
                 const keyItem = document.createElement('div');
                 keyItem.className = 'api-key-item';
                 keyItem.innerHTML = `
-                    <div class="api-key-title">${apiKey.name}</div>
-                    <div class="api-key-description">${apiKey.description}</div>
-                    <div style="margin-bottom: 1rem;">
-                        <a href="${apiKey.setupUrl}" target="_blank" class="api-key-link">
-                            Get ${apiKey.name} →
-                        </a>
-                    </div>
+                    <div class="api-key-title">${placeholder}</div>
+                    <div class="api-key-description">Enter your ${placeholder} value</div>
                     <input 
                         type="password" 
                         class="input" 
-                        placeholder="Enter your ${apiKey.name}"
-                        data-key="${apiKey.key}"
+                        placeholder="Enter your ${placeholder}"
+                        data-key="${placeholder}"
                     />
                 `;
                 container.appendChild(keyItem);
@@ -786,7 +783,7 @@
                     </div>
                 </div>
             `;
-            document.getElementById('deploymentInstructions').innerHTML = instructions;
+            document.getElementById('deploymentInstructions' ).innerHTML = instructions;
         }
 
         function startOver() {
@@ -808,4 +805,3 @@
     </script>
 </body>
 </html>
-
